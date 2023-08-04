@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "builtin-baseline": "9d47b24eacbd1cd94f139457ef6cd35e5d92cc84",
+  "dependencies": [
+    {
+      "name": "detours",
+      "version>=": "4.0.1#8"
+    }
+  ]
+}
