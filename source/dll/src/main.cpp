@@ -9,6 +9,87 @@
  * See the LICENSE file in the repository root for full license text.
  */
 
+#include <memory>
+#include <stdexcept>
+
 #include <Windows.h>
+#include <dinput.h>
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
 
 #include <detours/detours.h>
+
+#include "hook_api.h"
+#include "utils/SharedComPtr.hpp"
+#include "utils/Vtable.hpp"
+
+HINSTANCE g_instance_dll;
+
+namespace orange {
+    class DllMain {
+    public:
+        DllMain() {
+            // Create DirectInput related objects to access vtables.
+            SharedComPtr<IDirectInput8W> dinput;
+            SharedComPtr<IDirectInputDevice8W> keyboard_device, mouse_device;
+            if (FAILED(DirectInput8Create(g_instance_dll, DIRECTINPUT_VERSION, IID_IDirectInput8W,
+                                          reinterpret_cast<void**>(dinput.reset_and_get_address()), nullptr))) {
+                throw std::runtime_error("Failed to create DirectInput8.");
+            }
+            if (FAILED(dinput->CreateDevice(GUID_SysKeyboard, keyboard_device.reset_and_get_address(), nullptr))) {
+                throw std::runtime_error("Failed to create keyboard device.");
+            }
+            if (FAILED(dinput->CreateDevice(GUID_SysMouse, mouse_device.reset_and_get_address(), nullptr))) {
+                throw std::runtime_error("Failed to create mouse device.");
+            }
+
+            g_original_keyboard_GetDeviceState =
+                reinterpret_cast<SGetDeviceState*>(Vtable::get_virtual_method_address(*keyboard_device, 9));
+            g_original_mouse_GetDeviceState =
+                reinterpret_cast<SGetDeviceState*>(Vtable::get_virtual_method_address(*mouse_device, 9));
+
+            // Hook.
+            DetourTransactionBegin();
+            DetourUpdateThread(GetCurrentThread());
+            DetourAttach(reinterpret_cast<void**>(&g_original_keyboard_GetDeviceState),
+                         reinterpret_cast<void*>(hook_keyboard_GetDeviceState));
+            DetourAttach(reinterpret_cast<void**>(&g_original_mouse_GetDeviceState),
+                         reinterpret_cast<void*>(hook_mouse_GetDeviceState));
+            DetourTransactionCommit();
+        }
+        ~DllMain() {
+            // Unhook.
+            DetourTransactionBegin();
+            DetourUpdateThread(GetCurrentThread());
+            DetourDetach(reinterpret_cast<void**>(&g_original_keyboard_GetDeviceState),
+                         reinterpret_cast<void*>(hook_keyboard_GetDeviceState));
+            DetourDetach(reinterpret_cast<void**>(&g_original_mouse_GetDeviceState),
+                         reinterpret_cast<void*>(hook_mouse_GetDeviceState));
+            DetourTransactionCommit();
+        }
+    };
+
+    std::unique_ptr<DllMain> g_dll_main;
+} // namespace orange
+
+using namespace orange;
+
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+    switch (fdwReason) {
+    case DLL_PROCESS_ATTACH: {
+        g_instance_dll = hinstDLL;
+        g_dll_main = std::make_unique<orange::DllMain>();
+        break;
+    }
+    case DLL_THREAD_ATTACH: break;
+    case DLL_THREAD_DETACH: break;
+    case DLL_PROCESS_DETACH: {
+        if (lpvReserved != nullptr) {
+            break; // Do not do cleanup.
+        }
+        g_dll_main.reset();
+        break;
+    }
+    }
+    return TRUE;
+}
