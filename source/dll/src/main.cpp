@@ -23,16 +23,14 @@
 #include "utils/SharedComPtr.hpp"
 #include "utils/Vtable.hpp"
 
-HINSTANCE g_instance_dll;
-
 namespace orange {
     class DllMain {
     public:
-        DllMain() {
+        DllMain(HINSTANCE instance_dll) {
             // Create DirectInput related objects to access vtables.
             SharedComPtr<IDirectInput8W> dinput;
             SharedComPtr<IDirectInputDevice8W> keyboard_device, mouse_device;
-            if (FAILED(DirectInput8Create(g_instance_dll, DIRECTINPUT_VERSION, IID_IDirectInput8W,
+            if (FAILED(DirectInput8Create(instance_dll, DIRECTINPUT_VERSION, IID_IDirectInput8W,
                                           reinterpret_cast<void**>(dinput.reset_and_get_address()), nullptr))) {
                 throw std::runtime_error("Failed to create DirectInput8.");
             }
@@ -77,8 +75,7 @@ using namespace orange;
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     switch (fdwReason) {
     case DLL_PROCESS_ATTACH: {
-        g_instance_dll = hinstDLL;
-        g_dll_main = std::make_unique<orange::DllMain>();
+        g_dll_main = std::make_unique<orange::DllMain>(hinstDLL);
         break;
     }
     case DLL_THREAD_ATTACH: break;
