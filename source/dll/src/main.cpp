@@ -19,14 +19,20 @@
 
 #include <detours/detours.h>
 
+#include "MemoryReaderOsu.h"
 #include "hook_api.h"
 #include "utils/SharedComPtr.hpp"
 #include "utils/Vtable.hpp"
 
 namespace orange {
+    std::unique_ptr<MemoryReaderOsu> g_memory_reader_osu;
+
     class DllMain {
     public:
         DllMain(HINSTANCE instance_dll) {
+            // Create memory reader.
+            g_memory_reader_osu = std::make_unique<MemoryReaderOsu>();
+
             // Create DirectInput related objects to access vtables.
             SharedComPtr<IDirectInput8W> dinput;
             SharedComPtr<IDirectInputDevice8W> keyboard_device, mouse_device;
@@ -64,6 +70,9 @@ namespace orange {
             DetourDetach(reinterpret_cast<void**>(&g_original_mouse_GetDeviceState),
                          reinterpret_cast<void*>(hook_mouse_GetDeviceState));
             DetourTransactionCommit();
+
+            // Destroy memory reader.
+            g_memory_reader_osu.reset();
         }
     };
 
