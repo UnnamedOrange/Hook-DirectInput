@@ -16,6 +16,14 @@ include(FetchContent)
 find_path(DETOURS_INCLUDE_DIRS "detours/detours.h")
 find_library(DETOURS_LIBRARY detours REQUIRED)
 
+# memory-reader
+FetchContent_Declare(
+  memory-reader
+  GIT_REPOSITORY https://github.com/UnnamedOrange/memory-reader
+  GIT_TAG v0.3.0
+)
+FetchContent_MakeAvailable(memory-reader)
+
 ################################################################
 
 file(
@@ -37,3 +45,4 @@ target_sources(${TARGET_NAME} PRIVATE "${SOURCES}")
 
 target_include_directories(${TARGET_NAME} PRIVATE ${DETOURS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_NAME} PRIVATE ${DETOURS_LIBRARY})
+target_link_libraries(${TARGET_NAME} PRIVATE memory-reader)
