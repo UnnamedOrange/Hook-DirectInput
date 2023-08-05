@@ -12,11 +12,13 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 namespace orange {
     class Vtable final {
     public:
         template <typename T>
+            requires std::is_polymorphic_v<T>
         static void* get_virtual_method_address(const T& obj, size_t index) {
             auto vtable = *reinterpret_cast<const uintptr_t*>(&obj);
             auto method_address_holder = vtable + index * sizeof(uintptr_t);
