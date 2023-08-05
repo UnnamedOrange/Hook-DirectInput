@@ -17,14 +17,14 @@ namespace orange {
     SGetDeviceState* g_original_keyboard_GetDeviceState;
     SGetDeviceState* g_original_mouse_GetDeviceState;
 
-    HRESULT hook_keyboard_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData) {
+    HRESULT WINAPI hook_keyboard_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData) {
         auto result = g_original_keyboard_GetDeviceState(self, cbData, lpvData);
         if (FAILED(result)) {
             return result;
         }
         return result;
     }
-    HRESULT hook_mouse_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData) {
+    HRESULT WINAPI hook_mouse_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData) {
         return g_original_mouse_GetDeviceState(self, cbData, lpvData);
     }
 } // namespace orange

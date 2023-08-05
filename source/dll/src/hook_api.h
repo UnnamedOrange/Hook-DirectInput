@@ -22,6 +22,6 @@ namespace orange {
     extern SGetDeviceState* g_original_keyboard_GetDeviceState;
     extern SGetDeviceState* g_original_mouse_GetDeviceState;
 
-    HRESULT hook_keyboard_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData);
-    HRESULT hook_mouse_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData);
+    HRESULT WINAPI hook_keyboard_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData);
+    HRESULT WINAPI hook_mouse_GetDeviceState(IDirectInputDevice8W* self, DWORD cbData, LPVOID lpvData);
 } // namespace orange
