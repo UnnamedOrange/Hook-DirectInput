@@ -3,8 +3,8 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.")
 endif()
 
-project(detours
-  VERSION 1.0.0
+project(hook-dinput
+  VERSION 0.1.0
   DESCRIPTION "Hook DirectInput by injecting DLL"
   HOMEPAGE_URL "https://github.com/UnnamedOrange/Hook-DirectInput"
   LANGUAGES CXX
