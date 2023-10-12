@@ -2,6 +2,7 @@
  * @file main.cpp
  * @author UnnamedOrange
  * @brief DLL entry.
+ * @version 0.1.0 Adapt to CatTuber 0.5.2.
  * @version 0.0.0
  * @date 2023-08-04
  *
@@ -49,6 +50,8 @@ namespace orange {
 
             g_original_keyboard_GetDeviceState =
                 reinterpret_cast<SGetDeviceState*>(Vtable::get_virtual_method_address(*keyboard_device, 9));
+            g_original_keyboard_GetDeviceData =
+                reinterpret_cast<SGetDeviceData*>(Vtable::get_virtual_method_address(*keyboard_device, 10));
             g_original_mouse_GetDeviceState =
                 reinterpret_cast<SGetDeviceState*>(Vtable::get_virtual_method_address(*mouse_device, 9));
 
@@ -57,6 +60,8 @@ namespace orange {
             DetourUpdateThread(GetCurrentThread());
             DetourAttach(reinterpret_cast<void**>(&g_original_keyboard_GetDeviceState),
                          reinterpret_cast<void*>(hook_keyboard_GetDeviceState));
+            DetourAttach(reinterpret_cast<void**>(&g_original_keyboard_GetDeviceData),
+                         reinterpret_cast<void*>(hook_keyboard_GetDeviceData));
             DetourAttach(reinterpret_cast<void**>(&g_original_mouse_GetDeviceState),
                          reinterpret_cast<void*>(hook_mouse_GetDeviceState));
             DetourTransactionCommit();
